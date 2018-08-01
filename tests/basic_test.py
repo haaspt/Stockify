@@ -11,7 +11,7 @@ class APITest(unittest.TestCase):
 
     def test_historical(self):
         api = Stockify.HistoricalData(api_key)
-        result = api.historical('aapl', 'intraday')
+        result = api.stock('aapl', 'intraday')
         self.assertNotIn('Error Message', result.keys(), "API call returned an error.")
 
     def test_quote(self):

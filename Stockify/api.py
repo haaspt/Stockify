@@ -42,7 +42,7 @@ class HistoricalData(object):
             decoded = json.loads(response.text)
             return decoded
 
-    def historical(self, symbol, series_type, adjusted=False, datatype='json', interval='1min', compact=False):
+    def stock(self, symbol, series_type, adjusted=False, datatype='json', interval='1min', compact=False):
 
         function_dict = {
             'intraday': 'TIME_SERIES_INTRADAY',

@@ -8,4 +8,5 @@ setup(name='Stockify',
       author_email='patrick.tyler.haas@gmail.com',
       license='MIT',
       packages=['Stockify'],
+      python_requires='>=3.6',
       zip_safe=False)

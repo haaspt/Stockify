@@ -4,7 +4,7 @@ import json
 class StockifyError(Exception):
     pass
 
-class APICaller(object):
+class StockifyData(object):
 
     BASE_URL = 'https://www.alphavantage.co/'
     # VALID_INTERVALS
@@ -13,15 +13,28 @@ class APICaller(object):
 
         self.api_key = api_key
 
-    def _format_url(self, function_name, symbol, interval, outputsize, datatype):
-        # TODO: Rewrite to accomodate various parameters
-        request_url = f'{self.BASE_URL}query?function={function_name}&symbol={symbol}&interval={interval}&outputsize={outputsize}&datatype={datatype}&apikey={self.api_key}'
+    def _format_url(self, parameter_dict):
+        request_url = self.BASE_URL + 'query?'
+        params = [f'{key}={value}' for key, value in parameter_dict.items()]
+        params_string = '&'.join(params)
+        request_url += params_string
         return request_url
 
-    def _call_url(self, url):
+    def _call_api(self, url):
 
         response = requests.get(url)
-        if response.status_code is not 200:
+        if response.status_code != 200:
+            message = f'API call failed with status code {response.status_code}: {json.loads(response.text)}'
+            raise StockifyError(message)
+        else:
+            decoded = json.loads(response.text)
+            return decoded
+
+    @staticmethod
+    def get_quote(symbol):
+        quote_url = f'https://api.iextrading.com/1.0/stock/{symbol}/quote'
+        response = requests.get(quote_url)
+        if response.status_code != 200:
             message = f'API call failed with status code {response.status_code}: {json.loads(response.text)}'
             raise StockifyError(message)
         else:
@@ -31,40 +44,127 @@ class APICaller(object):
     def get_time_series(self, symbol, series_type, adjusted=False, datatype='json', interval='1m', compact=False):
 
         function_dict = {
-            'intraday': 'TIME_SERIES_INTRADAY',
+            'intraday': 'TIME_SERIES_INTRADAY', # TODO fix this
             'day': 'TIME_SERIES_DAILY',
             'week': 'TIME_SERIES_WEEKLY',
             'month': 'TIME_SERIES_MONTHLY'
+        }
+
+        request_params = {
+            'symbol': symbol,
+            'function': None,
+            'apikey': self.api_key
         }
 
         if series_type not in function_dict.keys():
             raise StockifyError(f'Time series type {series_type} is not a supported value')
         
         if series_type == 'intraday':
-            outputsize = 'compact' if compact else 'full'
-            request_url = self._format_url(function_dict[series_type], symbol, interval, outputsize, datatype)
+            request_params['function'] = function_dict[series_type]
+            request_params['outputsize'] = 'compact' if compact else 'full'
+            request_params['datatype'] = datatype
+            request_params['interval'] = interval
+            request_url = self._format_url(request_params)
         else:
-            function_name = function_dict[series_type] + '_ADJUSTED' if adjusted else function_dict[series_type]
-            # TODO: fix the URL formatter
-            # request_url = self._format_url(function_name, symbol, datatype)
+            request_params['function'] = function_dict[series_type] + '_ADJUSTED' if adjusted else function_dict[series_type]
+            request_params['datatype'] = datatype
+            request_url = self._format_url(request_params)
         
-        response = self._call_url(request_url)
+        response = self._call_api(request_url)
         return response
 
-    def get_fx_rates(self, from_currency, to_currency, series_type, datatype='json', interval='1m', compact=False):
-        pass
 
-    def get_crypto_rates(self, from_currency, to_currency, series_type):
-        # Currency lists:
-        # Physical: https://www.alphavantage.co/physical_currency_list/
-        # Crypto: https://www.alphavantage.co/digital_currency_list/
-        pass
+    def get_fx_rate(self, from_currency, to_currency='USD', series_type='rate', datatype='json', interval='1m', compact=False):
+        
+        function_dict = {
+            'rate': 'CURRENCY_EXCHANGE_RATE',
+            'intraday': 'FX_INTRADAY', # TODO fix this
+            'day': 'FX_DAILY', # TODO fix this
+            'week': 'FX_WEEKLY', # TODO fix this
+            'month': 'FX_MONTHLY' # TODO fix this
+        }
 
-    def get_technical_indicators(self):
-        pass
+        if series_type not in function_dict.keys():
+            raise StockifyError(f'FX time series type {series_type} is not a supported value')
+
+        request_params = {
+            'from_currency': from_currency,
+            'to_currency': to_currency,
+            'function': function_dict[series_type],
+            'apikey': self.api_key
+        }
+
+        if series_type == 'rate':
+            request_url = self._format_url(request_params)
+        else:
+            request_params['outputsize'] = 'compact' if compact else 'full'
+            request_params['datatype'] = datatype
+            if series_type == 'intraday':
+                request_params['interval'] = interval
+            request_url = self._format_url(request_params)
+        
+        response = self._call_api(request_url)
+        return response
+            
+
+    def get_crypto_rates(self, symbol, series_type, to_currency='USD'):
+        
+        function_dict = {
+            'intraday': 'DIGITAL_CURRENCY_INTRADAY',
+            'day': 'DIGITAL_CURRENCY_DAILY',
+            'week': 'DIGITAL_CURRENCY_WEEKLY',
+            'month': 'DIGITAL_CURRENCY_MONTHLY'
+        }
+
+        request_params = {
+            'function': function_dict[series_type],
+            'symbol': symbol,
+            'market': to_currency,
+            'apikey': self.api_key
+        }
+
+        request_url = self._format_url(request_params)
+        response = self._call_api(request_url)
+        return response
+
+    def get_technical_indicators(self, symbol, indicator, series_type, time_period, interval='daily', datatype='json'):
+        
+        # For a full list of indicators supported see: https://www.alphavantage.co/documentation/#technical-indicators
+        request_params = {
+            'symbol': symbol,
+            'function': indicator,
+            'series_type': series_type,
+            'time_period': time_period,
+            'interval': interval,
+            'datatype': datatype,
+            'apikey': self.api_key
+        }
+
+        request_url = self._format_url(request_params)
+        response = self._call_api(request_url)
+        return response
 
     def get_sector_performace(self):
-        pass    
 
-    def get_batch_quotes(self):
-        pass
+        request_params = {
+            'function': 'SECTOR',
+            'apikey': self.api_key
+        }
+
+        request_url = self._format_url(request_params)
+        response = self._call_api(request_url)
+        return response
+
+    def get_batch_quotes(self, stock_list, datatype='json'):
+        
+        request_params = {
+            'function': 'BATCH_STOCK_QUOTES',
+            'datatype': datatype,
+            'apikey': self.api_key
+        }
+
+        stock_list_string = ','.join(stock_list)
+        request_params['symbols'] = stock_list_string
+        request_url = self._format_url(request_params)
+        response = self._call_api(request_url)
+        return response

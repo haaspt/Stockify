@@ -10,12 +10,12 @@ except KeyError:
 class APITest(unittest.TestCase):
 
     def test_historical(self):
-        api = Stockify.Data(api_key)
+        api = Stockify.HistoricalData(api_key)
         result = api.historical('aapl', 'intraday')
         self.assertNotIn('Error Message', result.keys(), "API call returned an error.")
 
     def test_fx_rate(self):
-        api = Stockify.Data(api_key)
+        api = Stockify.HistoricalData(api_key)
         result = api.fx_rate('eur', series_type='intraday')
         self.assertNotIn('Error Message', result.keys(), "API call returned an error.")
 

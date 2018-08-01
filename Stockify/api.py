@@ -4,6 +4,20 @@ from .core import StockifyError
 
 class Data(object):
 
+    @staticmethod
+    def quote(symbol):
+
+        quote_url = f'https://api.iextrading.com/1.0/stock/{symbol}/quote'
+        response = requests.get(quote_url)
+        if response.status_code != 200:
+            message = f'API call failed with status code {response.status_code}: {json.loads(response.text)}'
+            raise StockifyError(message)
+        else:
+            decoded = json.loads(response.text)
+            return decoded
+
+class HistoricalData(object):
+
     BASE_URL = 'https://www.alphavantage.co/'
     # VALID_INTERVALS
     
@@ -21,17 +35,6 @@ class Data(object):
     def _call_api(self, url):
 
         response = requests.get(url)
-        if response.status_code != 200:
-            message = f'API call failed with status code {response.status_code}: {json.loads(response.text)}'
-            raise StockifyError(message)
-        else:
-            decoded = json.loads(response.text)
-            return decoded
-
-    @staticmethod
-    def quote(symbol):
-        quote_url = f'https://api.iextrading.com/1.0/stock/{symbol}/quote'
-        response = requests.get(quote_url)
         if response.status_code != 200:
             message = f'API call failed with status code {response.status_code}: {json.loads(response.text)}'
             raise StockifyError(message)

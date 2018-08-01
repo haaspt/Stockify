@@ -1,2 +1,2 @@
-from .api import Data
+from .api import Data, HistoricalData
 from .core import StockifyError

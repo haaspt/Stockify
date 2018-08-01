@@ -31,7 +31,7 @@ class StockifyData(object):
             return decoded
 
     @staticmethod
-    def get_quote(symbol):
+    def quote(symbol):
         quote_url = f'https://api.iextrading.com/1.0/stock/{symbol}/quote'
         response = requests.get(quote_url)
         if response.status_code != 200:
@@ -41,7 +41,7 @@ class StockifyData(object):
             decoded = json.loads(response.text)
             return decoded
 
-    def get_time_series(self, symbol, series_type, adjusted=False, datatype='json', interval='1min', compact=False):
+    def historical(self, symbol, series_type, adjusted=False, datatype='json', interval='1min', compact=False):
 
         function_dict = {
             'intraday': 'TIME_SERIES_INTRADAY',
@@ -74,7 +74,7 @@ class StockifyData(object):
         return response
 
 
-    def get_fx_rate(self, from_currency, to_currency='USD', series_type='rate', datatype='json', interval='1min', compact=False):
+    def fx_rate(self, from_currency, to_currency='USD', series_type='rate', datatype='json', interval='1min', compact=False):
         
         function_dict = {
             'rate': 'CURRENCY_EXCHANGE_RATE',
@@ -109,7 +109,7 @@ class StockifyData(object):
         return response
             
 
-    def get_crypto_rates(self, symbol, series_type, to_currency='USD'):
+    def crypto_rate(self, symbol, series_type, to_currency='USD'):
         
         function_dict = {
             'intraday': 'DIGITAL_CURRENCY_INTRADAY',
@@ -129,7 +129,7 @@ class StockifyData(object):
         response = self._call_api(request_url)
         return response
 
-    def get_technical_indicators(self, symbol, indicator, series_type, time_period, interval='daily', datatype='json'):
+    def indicators(self, symbol, indicator, series_type, time_period, interval='daily', datatype='json'):
         
         # For a full list of indicators supported see: https://www.alphavantage.co/documentation/#technical-indicators
         request_params = {
@@ -146,7 +146,7 @@ class StockifyData(object):
         response = self._call_api(request_url)
         return response
 
-    def get_sector_performace(self):
+    def sector(self):
 
         request_params = {
             'function': 'SECTOR',
@@ -157,7 +157,7 @@ class StockifyData(object):
         response = self._call_api(request_url)
         return response
 
-    def get_batch_quotes(self, stock_list, datatype='json'):
+    def batch_quotes(self, stock_list, datatype='json'):
         
         request_params = {
             'function': 'BATCH_STOCK_QUOTES',

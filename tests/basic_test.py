@@ -1,7 +1,11 @@
 import unittest
+import os
 import Stockify
 
-from credentials import api_key
+try:
+    api_key = os.environ['STOCKIFY_API_KEY']
+except KeyError:
+    from credentials import api_key
 
 class APITest(unittest.TestCase):
 

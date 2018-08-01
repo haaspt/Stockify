@@ -16,6 +16,31 @@ class Data(object):
             decoded = json.loads(response.text)
             return decoded
 
+    @staticmethod
+    def quotes(symbol_list):
+
+        quote_list = [{symbol: Data.quote(symbol)} for symbol in symbol_list]
+        return quote_list
+
+    @staticmethod
+    def price(symbol):
+
+        return Data.quote(symbol)['latestPrice']
+
+    @staticmethod
+    def info(symbol):
+
+        data = Data.quote(symbol)
+        info_dict = {
+            'companyName': data['companyName'],
+            'sector': data['sector'],
+            'latestPrice': ['latestPrice'],
+            'primaryExchange': ['primaryExchange']
+        }
+        return info_dict
+        
+
+
 class HistoricalData(object):
 
     BASE_URL = 'https://www.alphavantage.co/'

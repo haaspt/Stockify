@@ -1,10 +1,8 @@
 import requests
 import json
+from .core import StockifyError
 
-class StockifyError(Exception):
-    pass
-
-class StockifyData(object):
+class Data(object):
 
     BASE_URL = 'https://www.alphavantage.co/'
     # VALID_INTERVALS

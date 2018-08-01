@@ -1,0 +1,3 @@
+
+class StockifyError(Exception):
+    pass

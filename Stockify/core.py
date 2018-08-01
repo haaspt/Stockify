@@ -41,10 +41,10 @@ class StockifyData(object):
             decoded = json.loads(response.text)
             return decoded
 
-    def get_time_series(self, symbol, series_type, adjusted=False, datatype='json', interval='1m', compact=False):
+    def get_time_series(self, symbol, series_type, adjusted=False, datatype='json', interval='1min', compact=False):
 
         function_dict = {
-            'intraday': 'TIME_SERIES_INTRADAY', # TODO fix this
+            'intraday': 'TIME_SERIES_INTRADAY',
             'day': 'TIME_SERIES_DAILY',
             'week': 'TIME_SERIES_WEEKLY',
             'month': 'TIME_SERIES_MONTHLY'
@@ -74,29 +74,31 @@ class StockifyData(object):
         return response
 
 
-    def get_fx_rate(self, from_currency, to_currency='USD', series_type='rate', datatype='json', interval='1m', compact=False):
+    def get_fx_rate(self, from_currency, to_currency='USD', series_type='rate', datatype='json', interval='1min', compact=False):
         
         function_dict = {
             'rate': 'CURRENCY_EXCHANGE_RATE',
-            'intraday': 'FX_INTRADAY', # TODO fix this
-            'day': 'FX_DAILY', # TODO fix this
-            'week': 'FX_WEEKLY', # TODO fix this
-            'month': 'FX_MONTHLY' # TODO fix this
+            'intraday': 'FX_INTRADAY',
+            'day': 'FX_DAILY',
+            'week': 'FX_WEEKLY',
+            'month': 'FX_MONTHLY' 
         }
 
         if series_type not in function_dict.keys():
             raise StockifyError(f'FX time series type {series_type} is not a supported value')
 
         request_params = {
-            'from_currency': from_currency,
-            'to_currency': to_currency,
             'function': function_dict[series_type],
             'apikey': self.api_key
         }
 
         if series_type == 'rate':
+            request_params['from_currency'] = from_currency
+            request_params['to_currency'] = to_currency
             request_url = self._format_url(request_params)
         else:
+            request_params['from_symbol'] = from_currency
+            request_params['to_symbol'] = to_currency
             request_params['outputsize'] = 'compact' if compact else 'full'
             request_params['datatype'] = datatype
             if series_type == 'intraday':

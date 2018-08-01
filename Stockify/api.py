@@ -3,14 +3,33 @@ import json
 from .core import StockifyError
 
 class Data(object):
+    """Utility class for getting simple information about stocks
+
+    All methods are static and no API key is required to retrieve information
+    about stocks. Relies on the IEX Trading API.
+    """
 
     @staticmethod
     def quote(symbol):
+        """Fetches a quote for a given symbol, including price and other data
+
+        Args:
+            symbol (str): The stock symbol to be quoted. Not case sensitive.
+        Returns:
+            dict of str/int/float: JSON-like formatted quote containing info
+                like price (latest/open/close), company name, quote time, and
+                volume.
+        Raises:
+            StockifyError: If the API returns a non-200 status code. Note that
+                this will not catch all errors, since a bad response can be
+                returned without a bad status code.
+        """
 
         quote_url = f'https://api.iextrading.com/1.0/stock/{symbol}/quote'
         response = requests.get(quote_url)
         if response.status_code != 200:
-            message = f'API call failed with status code {response.status_code}: {json.loads(response.text)}'
+            message = f'API call failed with status code \
+                      {response.status_code}: {json.loads(response.text)}'
             raise StockifyError(message)
         else:
             decoded = json.loads(response.text)
@@ -18,17 +37,44 @@ class Data(object):
 
     @staticmethod
     def quotes(symbol_list):
+        """Calls the quote() method on a list of symbols, returning a quote dict
+
+        Args:
+            symbol_list (list of str): A simple list of symbols to retrieve
+                quotes for.
+        Returns:
+            dict of quotes: Key:Value pairs of 'symbol':quote, where the quote
+                is in turn a JSON-like dict of stock information. See documents
+                on the .quote() method for more detail.
+        """
 
         quote_list = [{symbol: Data.quote(symbol)} for symbol in symbol_list]
         return quote_list
 
     @staticmethod
     def price(symbol):
+        """Quickly get the latest price, in USD, of a stock
+
+        Args:
+            symbol (str): The stock symbol whose price is to be returned. Not
+                case sensitive.
+        Returns:
+            float: Last quoted price, in USD, of the stock queried.
+        """
 
         return Data.quote(symbol)['latestPrice']
 
     @staticmethod
     def info(symbol):
+        """Get basic information about a stock including name, sector, and price
+
+        Args:
+            symbol (str): The stock symbol whose information is to be returned.
+                Not case sensitive.
+        Returns:
+            dict of str/int: JSON-like formatted dict containing the company
+                name, sector, price, and primary exchange.
+        """
 
         data = Data.quote(symbol)
         info_dict = {
@@ -40,8 +86,17 @@ class Data(object):
         return info_dict
         
 
-
 class HistoricalData(object):
+    """Class for retrieving historical information about stocks and currencies
+
+    Relies on the AlphaVantage API, which requires a free API key that must be
+    supplied when the class is instantiated (see Stockify documentation). Once
+    initialized data on stocks, fx rates, crypto rates, technical indicators,
+    and sector performance can be retrieved, with various intervals.
+
+    Args:
+        api_key (str): A valid alphavantage API key.
+    """
 
     BASE_URL = 'https://www.alphavantage.co/'
     # VALID_INTERVALS
@@ -51,6 +106,19 @@ class HistoricalData(object):
         self.api_key = api_key
 
     def _format_url(self, parameter_dict):
+        """Private utility method to transform class methods into API urls
+
+        API property:value pairs are passed to the function as a dict and are
+        formatted into a string of key=value joined by &, which are then
+        appended to the base url.
+
+        Args:
+            parameter_dict (dict of str): Key:value pairs of parameter names
+                and values.
+        Returns:
+            str: A formatted url for the AlphaVantage API.
+        """
+
         request_url = self.BASE_URL + 'query?'
         params = [f'{key}={value}' for key, value in parameter_dict.items()]
         params_string = '&'.join(params)
@@ -58,16 +126,62 @@ class HistoricalData(object):
         return request_url
 
     def _call_api(self, url):
+        """Private utility method for making the API call and decoding response
+
+        Args:
+            url (str): A properly formatted url for the AlphaVantage API.
+        Returns:
+            dict: A JSON-like response dict containing the information returned
+                by the API call.
+        Raises:
+            StockifyError: If the API returns a non-200 status code. Note that
+                this will not catch all errors, since a bad response can be
+                returned without a bad status code.
+        """
 
         response = requests.get(url)
         if response.status_code != 200:
-            message = f'API call failed with status code {response.status_code}: {json.loads(response.text)}'
+            message = f'API call failed with status code \
+                        {response.status_code}: {json.loads(response.text)}'
             raise StockifyError(message)
         else:
             decoded = json.loads(response.text)
             return decoded
 
-    def stock(self, symbol, series_type, adjusted=False, datatype='json', interval='1min', compact=False):
+    def stock(self, symbol, series_type, adjusted=False,
+              datatype='json', interval='1min', compact=False):
+        """Fetch time series data on a single stock (intraday or interday)
+
+        Supports either intraday data fromr recent trading days, or data over
+        the course of days, weeks, or months. Intraday typically contains data
+        for the past 10-15 trading days, while day, week, and year contain up
+        to 20 years of historical data.
+
+        Data returned typically includes: timestamp, open, high, low, close,
+        and volume.
+
+        Args:
+            symbol (str): The stock symbol to be fetched.
+            series_type (str): Supports the following: intraday, day, week,
+                month.
+            adjusted (bool, optional): Determines if the closing price is
+                adjusted or not. Defaults to False. Only applicable to day, 
+                week, and month series. Adjusted closing price is amended to
+                include any distributions or corporate actions that occured
+                before the next day's open.
+            datatype (str, optional): Specifies whether data is returned in
+                JSON-like or CSV-like format. Defaults to JSON.
+            interval (str, optional): Specifies the resolution of the intraday
+                series. Defaults to '1min'. Supported values are: 1, 5, 15, 30,
+                and 60min. Only applicable to the intraday series type.
+            compact (bool, optional): Determines whether the intraday series is
+                truncated to 100 data points or contains all records available.
+                Defaults to False. Only applicable tothe intraday series type.
+        Returns:
+            dict: JSON-like dict of timeseries stock data.
+        Raises:
+            StockifyError: If an unsupported series is not entered.
+        """
 
         function_dict = {
             'intraday': 'TIME_SERIES_INTRADAY',
@@ -83,7 +197,8 @@ class HistoricalData(object):
         }
 
         if series_type not in function_dict.keys():
-            raise StockifyError(f'Time series type {series_type} is not a supported value')
+            raise StockifyError(f'Time series type {series_type} is not a \
+                                supported value')
         
         if series_type == 'intraday':
             request_params['function'] = function_dict[series_type]
@@ -100,7 +215,8 @@ class HistoricalData(object):
         return response
 
 
-    def fx_rate(self, from_currency, to_currency='USD', series_type='rate', datatype='json', interval='1min', compact=False):
+    def fx_rate(self, from_currency, to_currency='USD', series_type='rate',
+                datatype='json', interval='1min', compact=False):
         
         function_dict = {
             'rate': 'CURRENCY_EXCHANGE_RATE',
@@ -111,7 +227,8 @@ class HistoricalData(object):
         }
 
         if series_type not in function_dict.keys():
-            raise StockifyError(f'FX time series type {series_type} is not a supported value')
+            raise StockifyError(f'FX time series type {series_type} is not a \
+                                supported value')
 
         request_params = {
             'function': function_dict[series_type],
@@ -155,9 +272,11 @@ class HistoricalData(object):
         response = self._call_api(request_url)
         return response
 
-    def indicators(self, symbol, indicator, series_type, time_period, interval='daily', datatype='json'):
+    def indicators(self, symbol, indicator, series_type, time_period,
+                   interval='daily', datatype='json'):
         
-        # For a full list of indicators supported see: https://www.alphavantage.co/documentation/#technical-indicators
+        # For a full list of indicators supported see: 
+        # https://www.alphavantage.co/documentation/#technical-indicators
         request_params = {
             'symbol': symbol,
             'function': indicator,

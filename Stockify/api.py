@@ -28,8 +28,8 @@ class Data(object):
         quote_url = f'https://api.iextrading.com/1.0/stock/{symbol}/quote'
         response = requests.get(quote_url)
         if response.status_code != 200:
-            message = f'API call failed with status code \
-                      {response.status_code}: {json.loads(response.text)}'
+            message = (f'API call failed with status code '
+                       f'{response.status_code}: {json.loads(response.text)}')
             raise StockifyError(message)
         else:
             decoded = json.loads(response.text)
@@ -141,8 +141,8 @@ class HistoricalData(object):
 
         response = requests.get(url)
         if response.status_code != 200:
-            message = f'API call failed with status code \
-                        {response.status_code}: {json.loads(response.text)}'
+            message = (f'API call failed with status code '
+                       f'{response.status_code}: {json.loads(response.text)}')
             raise StockifyError(message)
         else:
             decoded = json.loads(response.text)
@@ -197,8 +197,8 @@ class HistoricalData(object):
         }
 
         if series_type not in function_dict.keys():
-            raise StockifyError(f'Time series type {series_type} is not a \
-                                supported value')
+            raise StockifyError((f'Time series type {series_type} is not a '
+                                 f'supported value'))
         
         if series_type == 'intraday':
             request_params['function'] = function_dict[series_type]
@@ -227,8 +227,8 @@ class HistoricalData(object):
         }
 
         if series_type not in function_dict.keys():
-            raise StockifyError(f'FX time series type {series_type} is not a \
-                                supported value')
+            raise StockifyError((f'FX time series type {series_type} is not a '
+                                 f'supported value'))
 
         request_params = {
             'function': function_dict[series_type],

@@ -1,6 +1,6 @@
 import requests
 import json
-from .core import StockifyError
+from .errors import StockifyError, StockifyAPIError
 
 class Data(object):
     """Utility class for getting simple information about stocks
@@ -30,7 +30,7 @@ class Data(object):
         if response.status_code != 200:
             message = f'API call failed with status code \
                       {response.status_code}: {json.loads(response.text)}'
-            raise StockifyError(message)
+            raise StockifyAPIError(message)
         else:
             decoded = json.loads(response.text)
             return decoded
@@ -143,7 +143,7 @@ class HistoricalData(object):
         if response.status_code != 200:
             message = f'API call failed with status code \
                         {response.status_code}: {json.loads(response.text)}'
-            raise StockifyError(message)
+            raise StockifyAPIError(message)
         else:
             decoded = json.loads(response.text)
             return decoded

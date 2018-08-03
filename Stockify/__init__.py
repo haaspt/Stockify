@@ -1,2 +1,3 @@
 from .api import Data, HistoricalData
-from .core import StockifyError
+from .errors import StockifyError, StockifyAPIError
+from .core import Portfolio, Holding, Lot

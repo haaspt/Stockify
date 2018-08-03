@@ -1,6 +1,6 @@
 import requests
 import json
-from .core import StockifyError
+from .errors import StockifyError, StockifyAPIError
 
 class Data(object):
     """Utility class for getting simple information about stocks

@@ -1,6 +1,6 @@
 import unittest
-
 import Stockify
+
 
 class PortfolioTest(unittest.TestCase):
 
@@ -21,4 +21,7 @@ class PortfolioTest(unittest.TestCase):
         portfolio.add_holding(symbol2)
         self.assertEqual(2, len(portfolio.holdings))
         self.assertEqual('AAPL', portfolio['AAPL'].symbol)
-        
+
+
+if __name__ == '__main__':
+    unittest.main()

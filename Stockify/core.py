@@ -108,6 +108,7 @@ class Holding(object):
 
         lot = Lot(self.symbol, date, cost_basis, shares)
         self.lots.append(lot)
+        self.lots.sort()
 
     def get_value(self):
         """Calculates the total value of the holding, based on value of lots
@@ -165,6 +166,10 @@ class Lot(object):
             float: the value of the lot multipled by shares
         """
         return self.shares * Data.price(self.symbol)
+
+    def __lt__(self, other):
+
+        return self.date < other.date
 
     def __repr__(self):
 

@@ -26,6 +26,18 @@ class Portfolio(object):
                 value += holding.get_value()
             return value
 
+    def get_prices(self):
+
+        return [{symbol: Data.price(symbol)} for symbol in self.holdings.keys()]
+
+    def __getitem__(self, item):
+        
+        return self.holdings[item.upper()]
+
+    def __repr__(self):
+
+        return self.get_prices()
+
 
 class Holding(object):
     
@@ -45,6 +57,14 @@ class Holding(object):
         for lot in self.lots:
             value += lot.get_value()
         return value
+
+    def get_price(self):
+
+        return Data.price(self.symbol)
+
+    def __repr__(self):
+
+        return f'Holding: {self.symbol}; Lots: {self.lots}'
 
 
 class Lot(object):

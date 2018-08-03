@@ -132,6 +132,14 @@ class Holding(object):
 
         return Data.price(self.symbol)
 
+    def __getitem__(self, item):
+
+        return self.lots[item]
+
+    def __len__(self):
+
+        return len(self.lots)
+
     def __repr__(self):
 
         return f'Holding: {self.symbol}; Lots: {self.lots}'

@@ -1,5 +1,5 @@
-import requests
 import json
+import requests
 from .errors import StockifyError, StockifyAPIError
 
 class Data(object):
@@ -20,7 +20,7 @@ class Data(object):
                 like price (latest/open/close), company name, quote time, and
                 volume.
         Raises:
-            StockifyError: If the API returns a non-200 status code. Note that
+            StockifyAPIError: If the API returns a non-200 status code. Note that
                 this will not catch all errors, since a bad response can be
                 returned without a bad status code.
         """
@@ -30,7 +30,7 @@ class Data(object):
         if response.status_code != 200:
             message = (f'API call failed with status code '
                        f'{response.status_code}: {json.loads(response.text)}')
-            raise StockifyError(message)
+            raise StockifyAPIError(message)
         else:
             decoded = json.loads(response.text)
             return decoded
@@ -84,7 +84,7 @@ class Data(object):
             'primaryExchange': ['primaryExchange']
         }
         return info_dict
-        
+
 
 class HistoricalData(object):
     """Class for retrieving historical information about stocks and currencies
@@ -100,7 +100,7 @@ class HistoricalData(object):
 
     BASE_URL = 'https://www.alphavantage.co/'
     # VALID_INTERVALS
-    
+
     def __init__(self, api_key):
 
         self.api_key = api_key
@@ -134,7 +134,7 @@ class HistoricalData(object):
             dict: A JSON-like response dict containing the information returned
                 by the API call.
         Raises:
-            StockifyError: If the API returns a non-200 status code. Note that
+            StockifyAPIError: If the API returns a non-200 status code. Note that
                 this will not catch all errors, since a bad response can be
                 returned without a bad status code.
         """
@@ -143,7 +143,7 @@ class HistoricalData(object):
         if response.status_code != 200:
             message = (f'API call failed with status code '
                        f'{response.status_code}: {json.loads(response.text)}')
-            raise StockifyError(message)
+            raise StockifyAPIError(message)
         else:
             decoded = json.loads(response.text)
             return decoded
@@ -165,7 +165,7 @@ class HistoricalData(object):
             series_type (str): Supports the following: intraday, day, week,
                 month.
             adjusted (bool, optional): Determines if the closing price is
-                adjusted or not. Defaults to False. Only applicable to day, 
+                adjusted or not. Defaults to False. Only applicable to day,
                 week, and month series. Adjusted closing price is amended to
                 include any distributions or corporate actions that occured
                 before the next day's open.
@@ -199,7 +199,7 @@ class HistoricalData(object):
         if series_type not in function_dict.keys():
             raise StockifyError((f'Time series type {series_type} is not a '
                                  f'supported value'))
-        
+
         if series_type == 'intraday':
             request_params['function'] = function_dict[series_type]
             request_params['outputsize'] = 'compact' if compact else 'full'
@@ -210,20 +210,20 @@ class HistoricalData(object):
             request_params['function'] = function_dict[series_type] + '_ADJUSTED' if adjusted else function_dict[series_type]
             request_params['datatype'] = datatype
             request_url = self._format_url(request_params)
-        
+
         response = self._call_api(request_url)
         return response
 
 
     def fx_rate(self, from_currency, to_currency='USD', series_type='rate',
                 datatype='json', interval='1min', compact=False):
-        
+
         function_dict = {
             'rate': 'CURRENCY_EXCHANGE_RATE',
             'intraday': 'FX_INTRADAY',
             'day': 'FX_DAILY',
             'week': 'FX_WEEKLY',
-            'month': 'FX_MONTHLY' 
+            'month': 'FX_MONTHLY'
         }
 
         if series_type not in function_dict.keys():
@@ -247,13 +247,13 @@ class HistoricalData(object):
             if series_type == 'intraday':
                 request_params['interval'] = interval
             request_url = self._format_url(request_params)
-        
+
         response = self._call_api(request_url)
         return response
-            
+
 
     def crypto_rate(self, symbol, series_type, to_currency='USD'):
-        
+
         function_dict = {
             'intraday': 'DIGITAL_CURRENCY_INTRADAY',
             'day': 'DIGITAL_CURRENCY_DAILY',
@@ -274,8 +274,8 @@ class HistoricalData(object):
 
     def indicators(self, symbol, indicator, series_type, time_period,
                    interval='daily', datatype='json'):
-        
-        # For a full list of indicators supported see: 
+
+        # For a full list of indicators supported see:
         # https://www.alphavantage.co/documentation/#technical-indicators
         request_params = {
             'symbol': symbol,
@@ -303,7 +303,7 @@ class HistoricalData(object):
         return response
 
     def batch_quotes(self, stock_list, datatype='json'):
-        
+
         request_params = {
             'function': 'BATCH_STOCK_QUOTES',
             'datatype': datatype,

@@ -11,7 +11,7 @@ class PortfolioTest(unittest.TestCase):
         expected_price = Stockify.Data.price('aapl')
         self.assertEqual(expected_price, price, ('Expected price did not match '
                                                  f'returned price: {price}'))
-    
+
     def test_portfolio(self):
 
         portfolio = Stockify.Portfolio()

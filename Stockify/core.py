@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from .api import Data
 from .errors import StockifyError
 
@@ -8,7 +8,7 @@ class Portfolio(object):
 
     The porfolio is used to store Holdings, which are in turn comprised of Lots.
     Once a holding is added using the `.add_holding()` method it can be accessed
-    using subscript notation: 
+    using subscript notation:
         # Add
         `portfolio.add_holding('aapl')`
         # Access
@@ -16,8 +16,7 @@ class Portfolio(object):
     """
 
     holdings = {}
-    
-    
+
     def add_holding(self, symbol):
         """Add a holding to the portfolio object.
 
@@ -60,7 +59,7 @@ class Portfolio(object):
                 symbol: price dict.
         """
 
-        return [{symbol: Data.price(symbol)} for symbol in self.holdings.keys()]
+        return [{symbol: Data.price(symbol)} for symbol, _ in self.holdings.items()]
 
     def __getitem__(self, item):
 
@@ -92,7 +91,7 @@ class Holding(object):
     """
 
     lots = []
-    
+
     def __init__(self, symbol):
 
         self.symbol = symbol.upper()
@@ -159,14 +158,14 @@ class Lot(object):
     """
 
     _dateformat = '%Y-%m-%d'
-    
+
     def __init__(self, symbol, date, cost_basis, shares):
 
         self.symbol = symbol.upper()
         self.date = datetime.strptime(date, self._dateformat).date()
         self.cost_basis = cost_basis
         self.shares = shares
-    
+
     def get_value(self):
         """Returns the USD value of the lot (shares * current price)
 

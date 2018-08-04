@@ -119,7 +119,7 @@ class Holding(object):
 
         value = 0.0
         for lot in self.lots:
-            value += lot.get_value()
+            value += lot.market_value
         return value
 
     def get_price(self):
@@ -165,8 +165,19 @@ class Lot(object):
         self.date = datetime.strptime(date, self._dateformat).date()
         self.cost_basis = cost_basis
         self.shares = shares
+        self.initial_value = shares * cost_basis
 
-    def get_value(self):
+    @property
+    def total_gains(self):
+        """Total returns of the lot, in USD, since original purchase.
+
+        Returns:
+            float: current market value - initial value
+        """
+        return self.market_value - self.initial_value
+
+    @property
+    def market_value(self):
         """Returns the USD value of the lot (shares * current price)
 
         Returns:

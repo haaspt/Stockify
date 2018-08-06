@@ -123,6 +123,22 @@ class Holding(object):
 
         self.lots = []
         self.symbol = symbol.upper()
+        self.total_shares = 0
+        self.avg_cost_basis = 0.0
+
+    def _calc_avg_cost_basis(self):
+
+        avg_cost_basis = 0.0
+        total_shares = 0
+        n = len(self.lots)
+        if n > 0:
+            for lot in self.lots:
+                lot_cost_basis = lot.cost_basis * lot.shares
+                avg_cost_basis += lot_cost_basis
+                total_shares += lot.shares
+            avg_cost_basis = avg_cost_basis / total_shares
+        return avg_cost_basis
+        
 
     def add_lot(self, date, cost_basis, shares):
         """Creates a Lot object and appends it to the self.lots attribute
@@ -136,6 +152,9 @@ class Holding(object):
         lot = Lot(self.symbol, date, cost_basis, shares)
         self.lots.append(lot)
         self.lots.sort()
+        # Update holding totals
+        self.total_shares += shares
+        self.avg_cost_basis = self._calc_avg_cost_basis()
 
     def add_lots(self, lot_list):
         """Create multiple lots passed in as a list
@@ -157,10 +176,7 @@ class Holding(object):
                 have been added.
         """
 
-        value = 0.0
-        for lot in self.lots:
-            value += lot.get_value()
-        return value
+        return self.total_shares * Data.price(self.symbol)
 
     def get_price(self):
         """The current market price of a single share of the holding.

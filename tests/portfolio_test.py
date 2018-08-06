@@ -27,10 +27,21 @@ class PortfolioTest(unittest.TestCase):
         my_holdings = ['aapl', 'v', 'ms']
         portfolio_with_holdings = Stockify.Portfolio(my_holdings)
         number_of_holdings = len(portfolio_with_holdings)
-        self.assertEqual(4, number_of_holdings)
+        self.assertEqual(3, number_of_holdings)
         # Value returns 0.0 because no lots have been added
         self.assertEqual(0.0, portfolio_with_holdings.get_value())
-        self.assertEqual(4, len(portfolio_with_holdings.get_prices()))
+        self.assertEqual(3, len(portfolio_with_holdings.get_prices()))
+
+    def test_lot(self):
+
+        portfolio = Stockify.Portfolio(['aapl', 'ms'])
+        portfolio['aapl'].add_lot('2018-08-06', 120.10, 5)
+        lots = [['2018-07-01', 123.12, 6], ['2018-08-01', 140.00, 2]]
+        portfolio['ms'].add_lots(lots)
+        self.assertEqual(1, len(portfolio['aapl']))
+        # Check that sorting worked when lots were added
+        first_lot = portfolio['ms'][0]
+        self.assertEqual(6, first_lot.shares)
 
 
 if __name__ == '__main__':

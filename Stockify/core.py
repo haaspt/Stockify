@@ -77,6 +77,15 @@ class Portfolio(object):
 
         return [{symbol: Data.price(symbol)} for symbol, _ in self.holdings.items()]
 
+    def remove(self, holding_symbol):
+        """Remove a holding
+
+        Args:
+            holding_symbol (str): The symbol to be removed
+        """
+
+        self.holdings.pop(holding_symbol.upper())
+
     def __len__(self):
 
         return len(self.holdings.keys())
@@ -161,6 +170,15 @@ class Holding(object):
         """
 
         return Data.price(self.symbol)
+
+    def remove(self, lot_index):
+        """Remove a lot by index
+
+        Args:
+            lot_index: The index number of the lot to be removed
+        """
+
+        del self.lots[lot_index]
 
     def __getitem__(self, item):
 

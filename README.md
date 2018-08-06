@@ -4,7 +4,24 @@
 
 Stockify is a simple utility for tracking portfolio performance and getting easy access to current and historical stock market data.
 
-### Usage
+## Installation
+
+Clone the repo and install with setup.py or pip:
+
+```bash
+$ git clone https://github.com/haaspt/Stockify.git
+$ cd Stockify
+$ python setup.py install
+OR
+$ pip install -e .
+```
+
+### Requirements
+
+- [Python](https://www.python.org/downloads/) 3.6 or greater
+- [Requests](http://docs.python-requests.org/en/master/)
+
+## Usage
 
 Stockify can be used as a portfolio tracking tool or to get stock market data directly from the IEX and Alpha Vantage APIs directly.
 

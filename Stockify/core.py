@@ -18,9 +18,8 @@ class Portfolio(object):
             holdings to the portfolio.
     """
 
-    holdings = {}
-
     def __init__(self, holdings=None):
+        self.holdings = {}
         if holdings:
             self.add_holdings(holdings)
 
@@ -111,10 +110,9 @@ class Holding(object):
             via `.add_lot()` method.
     """
 
-    lots = []
-
     def __init__(self, symbol):
 
+        self.lots = []
         self.symbol = symbol.upper()
 
     def add_lot(self, date, cost_basis, shares):

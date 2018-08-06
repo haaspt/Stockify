@@ -193,7 +193,8 @@ class Portfolio(object):
 
     def __repr__(self):
 
-        return f'{self.get_prices}'
+        price_list = self.get_prices()
+        return f'{json.dumps(price_list)}'
 
 
 class Holding(object):

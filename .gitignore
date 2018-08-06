@@ -2,3 +2,6 @@
 __pycache__/
 credentials*
 .DS_Store
+*.egg-info/
+dist/
+build/

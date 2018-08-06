@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import csv
 from .api import Data
 from .errors import StockifyError
 
@@ -92,35 +93,77 @@ class Portfolio(object):
         if len(self.holdings) == 0:
             raise StockifyError('Cannot export a portfolio with no holdings')
 
-        export_data = []
-        for symbol, holding in self.holdings.items():
-            holding_data = {'symbol': symbol,
-                            'lots': []}
-            for lot in holding.lots:
-                lot_data = {'date': lot.date.strftime(lot._dateformat),
-                            'cost_basis': lot.cost_basis,
-                            'shares': lot.shares}
-                holding_data['lots'].append(lot_data)
-            export_data.append(holding_data)
-        with open(filename, 'w') as outfile:
-            json.dump(export_data, outfile)
-            print(f'Portfolio written to file: {filename}')
+        if format == 'json':
+            export_data = []
+            for symbol, holding in self.holdings.items():
+                holding_data = {'symbol': symbol,
+                                'lots': []}
+                for lot in holding.lots:
+                    lot_data = {'date': lot.date.strftime(lot._dateformat),
+                                'cost_basis': lot.cost_basis,
+                                'shares': lot.shares}
+                    holding_data['lots'].append(lot_data)
+                export_data.append(holding_data)
+            with open(filename, 'w') as outfile:
+                json.dump(export_data, outfile)
+                print(f'Portfolio written to file: {filename}')
+        elif format == 'csv':
+            export_header = ['holding_symbol',
+                             'lot_date',
+                             'lot_cost_basis',
+                             'lot_shares']
+            export_rows = []
+            for symbol, holding in self.holdings.items():
+                for lot in holding.lots:
+                    row = [symbol,
+                           lot.date.strftime(lot._dateformat),
+                           lot.cost_basis,
+                           lot.shares]
+                    export_rows.append(row)
+            with open(filename, 'w', newline='') as outfile:
+                writer = csv.writer(outfile)
+                writer.writerow(export_header)
+                writer.writerows(export_rows)
+                print(f'Portfolio written to file: {filename}')
+        else:
+            raise StockifyError(f'{format} is not a supported file format.')
 
     def from_file(self, filename, format='json'):
 
-        with open(filename) as importfile:
-            import_data = json.load(importfile)
-            holding_count = 0
-            lot_count = 0
-            for holding in import_data:
-                holding_count += 1
-                self.add_holding(holding['symbol'])
-                this_holding = self.__getitem__(holding['symbol'])
-                lot_data = holding['lots']
-                lot_list = [[lot['date'], lot['cost_basis'], lot['shares']] for lot in lot_data]
-                this_holding.add_lots(lot_list)
-                lot_count += len(holding['lots'])
-            print(f'{holding_count} holdings and {lot_count} lots loaded from file')
+        if format == 'json':
+            with open(filename, 'r') as importfile:
+                import_data = json.load(importfile)
+                holding_count = 0
+                lot_count = 0
+                for holding in import_data:
+                    holding_count += 1
+                    self.add_holding(holding['symbol'])
+                    this_holding = self.__getitem__(holding['symbol'])
+                    lot_data = holding['lots']
+                    lot_list = [[lot['date'], lot['cost_basis'], lot['shares']] for lot in lot_data]
+                    this_holding.add_lots(lot_list)
+                    lot_count += len(holding['lots'])
+                print(f'{holding_count} holdings and {lot_count} lots loaded from file')
+        elif format == 'csv':
+            with open(filename, 'r', newline='') as importfile:
+                reader = csv.reader(importfile)
+                header = next(reader)
+                holding_count = 0
+                lot_count = 0
+                for row in reader:
+                    if len(row) > 4:
+                        raise StockifyError(('Unexpected number of columns '
+                                             'encountered in row.'))
+
+                    if row[0] not in self.holdings.keys():
+                        self.add_holding(row[0])
+                        holding_count += 1
+                    holding = self.holdings[row[0]]
+                    holding.add_lot(row[1], float(row[2]), int(row[3]))
+                    lot_count += 1
+                print(f'{holding_count} holdings and {lot_count} lots loaded from file')
+        else:
+            raise StockifyError(f'{format} is not a supported file format.')
         
     def __len__(self):
 

@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 from .api import Data
 from .errors import StockifyError
 
@@ -86,6 +87,41 @@ class Portfolio(object):
 
         self.holdings.pop(holding_symbol.upper())
 
+    def to_file(self, filename, format='json'):
+
+        if len(self.holdings) == 0:
+            raise StockifyError('Cannot export a portfolio with no holdings')
+
+        export_data = []
+        for symbol, holding in self.holdings.items():
+            holding_data = {'symbol': symbol,
+                            'lots': []}
+            for lot in holding.lots:
+                lot_data = {'date': lot.date.strftime(lot._dateformat),
+                            'cost_basis': lot.cost_basis,
+                            'shares': lot.shares}
+                holding_data['lots'].append(lot_data)
+            export_data.append(holding_data)
+        with open(filename, 'w') as outfile:
+            json.dump(export_data, outfile)
+            print(f'Portfolio written to file: {filename}')
+
+    def from_file(self, filename, format='json'):
+
+        with open(filename) as importfile:
+            import_data = json.load(importfile)
+            holding_count = 0
+            lot_count = 0
+            for holding in import_data:
+                holding_count += 1
+                self.add_holding(holding['symbol'])
+                this_holding = self.__getitem__(holding['symbol'])
+                lot_data = holding['lots']
+                lot_list = [[lot['date'], lot['cost_basis'], lot['shares']] for lot in lot_data]
+                this_holding.add_lots(lot_list)
+                lot_count += len(holding['lots'])
+            print(f'{holding_count} holdings and {lot_count} lots loaded from file')
+        
     def __len__(self):
 
         return len(self.holdings.keys())

@@ -54,14 +54,9 @@ class Portfolio(object):
         Returns:
             float: The USD value of the holding or sum of all holdings in the
                 portfolio.
-        Raises:
-            StockifyError: If the symbol of a holding not in the portfolio is
-                entered.
         """
 
         if symbol:
-            if symbol not in self.holdings.keys():
-                raise StockifyError(f'Symbol {symbol.upper()} not in holdings.')
             return self.holdings[symbol.upper()].get_value()
         else:
             value = 0
@@ -77,7 +72,8 @@ class Portfolio(object):
                 symbol: price dict.
         """
 
-        return [{symbol: Data.price(symbol)} for symbol, _ in self.holdings.items()]
+        return [{symbol: Data.price(symbol)} for symbol, _ 
+                in self.holdings.items()]
 
     def remove(self, holding_symbol):
         """Remove a holding
@@ -158,14 +154,17 @@ class Portfolio(object):
                     self.add_holding(holding['symbol'])
                     this_holding = self.__getitem__(holding['symbol'])
                     lot_data = holding['lots']
-                    lot_list = [[lot['date'], lot['cost_basis'], lot['shares']] for lot in lot_data]
+                    lot_list = [[lot['date'], lot['cost_basis'], lot['shares']]
+                                for lot 
+                                in lot_data]
                     this_holding.add_lots(lot_list)
                     lot_count += len(holding['lots'])
-                print(f'{holding_count} holdings and {lot_count} lots loaded from file')
+                print((f'{holding_count} holdings and {lot_count} lots '
+                       'loaded from file'))
         elif format == 'csv':
             with open(filename, 'r', newline='') as importfile:
                 reader = csv.reader(importfile)
-                header = next(reader)
+                next(reader) # Skip the header row
                 holding_count = 0
                 lot_count = 0
                 for row in reader:
@@ -179,7 +178,8 @@ class Portfolio(object):
                     holding = self.holdings[row[0]]
                     holding.add_lot(row[1], float(row[2]), int(row[3]))
                     lot_count += 1
-                print(f'{holding_count} holdings and {lot_count} lots loaded from file')
+                print((f'{holding_count} holdings and {lot_count} lots '
+                       'loaded from file'))
         else:
             raise StockifyError(f'{format} is not a supported file format.')
         

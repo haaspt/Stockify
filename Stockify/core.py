@@ -89,6 +89,13 @@ class Portfolio(object):
         self.holdings.pop(holding_symbol.upper())
 
     def to_file(self, filename, format='json'):
+        """Save the current portfolio to disk as a JSON or CSV file
+
+        Args:
+            filename (str): The filename, including a file extension
+            format (str, optional): The exported file format. Defaults to
+                'json'. 'json' and 'csv' supported
+        """
 
         if len(self.holdings) == 0:
             raise StockifyError('Cannot export a portfolio with no holdings')
@@ -129,6 +136,17 @@ class Portfolio(object):
             raise StockifyError(f'{format} is not a supported file format.')
 
     def from_file(self, filename, format='json'):
+        """Loads holdings and lots from disk.
+
+        Holdings/lots that have already been added to the current portfolio
+        will not be dropped or overwritten, so care should be taken when using
+        this method to avoid duplicate data.
+
+        Args:
+            filename (str): The name of the file to load, including extension
+            format (str, optional): The format of the file. Defaults to 'json'.
+                'json' and 'csv' are supported.
+        """
 
         if format == 'json':
             with open(filename, 'r') as importfile:

@@ -13,9 +13,16 @@ class Portfolio(object):
         `portfolio.add_holding('aapl')`
         # Access
         `portfolio['aapl']`
+    Args:
+        holdings (list of str, optional): A list of symbols to be added as
+            holdings to the portfolio.
     """
 
     holdings = {}
+
+    def __init__(self, holdings=None):
+        if holdings:
+            self.add_holdings(holdings)
 
     def add_holding(self, symbol):
         """Add a holding to the portfolio object.
@@ -26,6 +33,16 @@ class Portfolio(object):
 
         holding = Holding(symbol)
         self.holdings[symbol.upper()] = holding
+
+    def add_holdings(self, symbol_list):
+        """Add  a list of holdings passed in as a list of symbols.
+
+        Args:
+            symbol_list (list of str): A list of stock symbols to add as holdings
+        """
+
+        for symbol in symbol_list:
+            self.add_holding(symbol)
 
     def get_value(self, symbol=None):
         """Gets the value of a single symbol or the entire portfolio.
@@ -60,6 +77,10 @@ class Portfolio(object):
         """
 
         return [{symbol: Data.price(symbol)} for symbol, _ in self.holdings.items()]
+
+    def __len__(self):
+
+        return len(self.holdings.keys())
 
     def __getitem__(self, item):
 
@@ -108,6 +129,18 @@ class Holding(object):
         lot = Lot(self.symbol, date, cost_basis, shares)
         self.lots.append(lot)
         self.lots.sort()
+
+    def add_lots(self, lot_list):
+        """Create multiple lots passed in as a list
+
+        Args:
+            lot_list (list of of lists): A list of lists, where each list item
+                contains the three parameters needed to create a lot: date,
+                cost basis, and shares, in that exact order.
+        """
+
+        for lot in lot_list:
+            self.add_lot(lot[0], lot[1], lot[2])
 
     def get_value(self):
         """Calculates the total value of the holding, based on value of lots

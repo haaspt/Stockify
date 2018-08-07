@@ -207,7 +207,9 @@ class HistoricalData(object):
             request_params['interval'] = interval
             request_url = self._format_url(request_params)
         else:
-            request_params['function'] = function_dict[series_type] + '_ADJUSTED' if adjusted else function_dict[series_type]
+            request_params['function'] = (function_dict[series_type] +
+                                          '_ADJUSTED' if adjusted
+                                          else function_dict[series_type])
             request_params['datatype'] = datatype
             request_url = self._format_url(request_params)
 

@@ -65,9 +65,9 @@ class Portfolio(object):
             return value
 
     def get_gains(self, symbol=None):
-        
+
         if symbol:
-            return self.holdings[symbol.upper()].gains
+            return self.holdings[symbol.upper()].get_gains()
         else:
             total_gains = 0
             day_gains = 0

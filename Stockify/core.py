@@ -65,7 +65,7 @@ class Portfolio(object):
             return value
 
     def get_gains(self, symbol=None):
-
+        
         if symbol:
             return self.holdings[symbol.upper()].gains
         else:
@@ -73,7 +73,7 @@ class Portfolio(object):
             day_gains = 0
             return_list = []
             for symbol, holding in self.holdings.items():
-                holding_gains = holding.gains
+                holding_gains = holding.get_gains()
                 day_gains += holding_gains['day']
                 total_gains += holding_gains['total']
                 return_list.append({symbol: holding_gains})

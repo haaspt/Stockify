@@ -296,20 +296,26 @@ class Holding(object):
     def get_price(self):
         """The current market price of a single share of the holding.
 
-        Return:
-            float: the current USD share price of the holding.
+        Returns:
+            float: The current USD share price of the holding.
         """
 
         return Data.price(self.symbol)
 
-    @property
-    def gains(self):
-        day_gains = 0
-        total_gains = 0
-        for lot in self.lots:
-            day_gains += lot.day_gains
-            total_gains += lot.total_gains
+    def get_gains(self):
+        """The day and total gains of this holding since
+
+        Returns:
+            dict of {str: float}: The day and total gains for this holding
+        """
+        quote = Data.quote(self.symbol)
+        current_value = round(quote['latestPrice'] * self.total_shares, 2)
+        open_value = round(quote['open'] * self.total_shares, 2)
+        initial_value = round(self.total_shares * self.avg_cost_basis, 2)
+        day_gains = current_value - open_value
+        total_gains = current_value - initial_value
         return {'day': day_gains, 'total': total_gains}
+
     def remove(self, lot_index):
         """Remove a lot by index
 
@@ -366,6 +372,11 @@ class Lot(object):
 
     @property
     def day_gains(self):
+        """The increase in value of this holding in the current or previous day
+
+        Returns:
+            float: Price in USD of current market value - value at open
+        """
         open_price = Data.quote(self.symbol)['open']
         current_price = Data.price(self.symbol)
         return round((current_price * self.shares) - (open_price * self.shares),

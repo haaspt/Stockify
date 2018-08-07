@@ -5,3 +5,5 @@ credentials*
 *.egg-info/
 dist/
 build/
+*.csv
+*.json

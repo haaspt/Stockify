@@ -36,20 +36,32 @@ class Portfolio(object):
         Returns:
             float: The USD value of the holding or sum of all holdings in the
                 portfolio.
-        Raises:
-            StockifyError: If the symbol of a holding not in the portfolio is
-                entered.
         """
 
         if symbol:
-            if symbol not in self.holdings.keys():
-                raise StockifyError(f'Symbol {symbol.upper()} not in holdings.')
             return self.holdings[symbol.upper()].get_value()
         else:
             value = 0
             for holding in self.holdings.values():
                 value += holding.get_value()
             return value
+
+    def get_gains(self, symbol=None):
+
+        if symbol:
+            return self.holdings[symbol.upper()].gains
+        else:
+            total_gains = 0
+            day_gains = 0
+            return_list = []
+            for symbol, holding in self.holdings.items():
+                holding_gains = holding.gains
+                day_gains += holding_gains['day']
+                total_gains += holding_gains['total']
+                return_list.append({symbol: holding_gains})
+            total = {'total': {'day': day_gains, 'total': total_gains}}
+            return_list.append(total)
+            return return_list
 
     def get_prices(self):
         """Gets the current stock price of the holdings in the portfolio.
@@ -67,7 +79,7 @@ class Portfolio(object):
 
     def __repr__(self):
 
-        return f'{self.get_prices}'
+        return f'{self.get_prices()}'
 
 
 class Holding(object):
@@ -131,6 +143,15 @@ class Holding(object):
 
         return Data.price(self.symbol)
 
+    @property
+    def gains(self):
+        day_gains = 0
+        total_gains = 0
+        for lot in self.lots:
+            day_gains += lot.day_gains
+            total_gains += lot.total_gains
+        return {'day': day_gains, 'total': total_gains}
+
     def __getitem__(self, item):
 
         return self.lots[item]
@@ -165,7 +186,7 @@ class Lot(object):
         self.date = datetime.strptime(date, self._dateformat).date()
         self.cost_basis = cost_basis
         self.shares = shares
-        self.initial_value = shares * cost_basis
+        self.initial_value = round(shares * cost_basis, 2)
 
     @property
     def total_gains(self):
@@ -174,7 +195,14 @@ class Lot(object):
         Returns:
             float: current market value - initial value
         """
-        return self.market_value - self.initial_value
+        return round(self.market_value - self.initial_value, 2)
+
+    @property
+    def day_gains(self):
+        open_price = Data.quote(self.symbol)['open']
+        current_price = Data.price(self.symbol)
+        return round((current_price * self.shares) - (open_price * self.shares),
+                     2)
 
     @property
     def market_value(self):
@@ -183,7 +211,7 @@ class Lot(object):
         Returns:
             float: the value of the lot multipled by shares
         """
-        return self.shares * Data.price(self.symbol)
+        return round(self.shares * Data.price(self.symbol), 2)
 
     def __lt__(self, other):
 

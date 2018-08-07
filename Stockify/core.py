@@ -89,7 +89,7 @@ class Portfolio(object):
                 symbol: price dict.
         """
 
-        return [{symbol: Data.price(symbol)} for symbol, _ 
+        return [{symbol: Data.price(symbol)} for symbol, _
                 in self.holdings.items()]
 
     def remove(self, holding_symbol):
@@ -101,25 +101,26 @@ class Portfolio(object):
 
         self.holdings.pop(holding_symbol.upper())
 
-    def to_file(self, filename, format='json'):
+    def to_file(self, filename, file_format='json'):
         """Save the current portfolio to disk as a JSON or CSV file
 
         Args:
             filename (str): The filename, including a file extension
-            format (str, optional): The exported file format. Defaults to
+            file_format (str, optional): The exported file format. Defaults to
                 'json'. 'json' and 'csv' supported
         """
+        date_format = '%Y-%m-%d'
 
-        if len(self.holdings) == 0:
+        if not self.holdings:
             raise StockifyError('Cannot export a portfolio with no holdings')
 
-        if format == 'json':
+        if file_format == 'json':
             export_data = []
             for symbol, holding in self.holdings.items():
                 holding_data = {'symbol': symbol,
                                 'lots': []}
                 for lot in holding.lots:
-                    lot_data = {'date': lot.date.strftime(lot._dateformat),
+                    lot_data = {'date': lot.date.strftime(date_format),
                                 'cost_basis': lot.cost_basis,
                                 'shares': lot.shares}
                     holding_data['lots'].append(lot_data)
@@ -127,7 +128,7 @@ class Portfolio(object):
             with open(filename, 'w') as outfile:
                 json.dump(export_data, outfile)
                 print(f'Portfolio written to file: {filename}')
-        elif format == 'csv':
+        elif file_format == 'csv':
             export_header = ['holding_symbol',
                              'lot_date',
                              'lot_cost_basis',
@@ -136,7 +137,7 @@ class Portfolio(object):
             for symbol, holding in self.holdings.items():
                 for lot in holding.lots:
                     row = [symbol,
-                           lot.date.strftime(lot._dateformat),
+                           lot.date.strftime(date_format),
                            lot.cost_basis,
                            lot.shares]
                     export_rows.append(row)
@@ -148,7 +149,7 @@ class Portfolio(object):
         else:
             raise StockifyError(f'{format} is not a supported file format.')
 
-    def from_file(self, filename, format='json'):
+    def from_file(self, filename, file_format='json'):
         """Loads holdings and lots from disk.
 
         Holdings/lots that have already been added to the current portfolio
@@ -161,7 +162,7 @@ class Portfolio(object):
                 'json' and 'csv' are supported.
         """
 
-        if format == 'json':
+        if file_format == 'json':
             with open(filename, 'r') as importfile:
                 import_data = json.load(importfile)
                 holding_count = 0
@@ -172,13 +173,13 @@ class Portfolio(object):
                     this_holding = self.__getitem__(holding['symbol'])
                     lot_data = holding['lots']
                     lot_list = [[lot['date'], lot['cost_basis'], lot['shares']]
-                                for lot 
+                                for lot
                                 in lot_data]
                     this_holding.add_lots(lot_list)
                     lot_count += len(holding['lots'])
                 print((f'{holding_count} holdings and {lot_count} lots '
                        'loaded from file'))
-        elif format == 'csv':
+        elif file_format == 'csv':
             with open(filename, 'r', newline='') as importfile:
                 reader = csv.reader(importfile)
                 next(reader) # Skip the header row
@@ -199,7 +200,7 @@ class Portfolio(object):
                        'loaded from file'))
         else:
             raise StockifyError(f'{format} is not a supported file format.')
-        
+
     def __len__(self):
 
         return len(self.holdings.keys())
@@ -245,15 +246,14 @@ class Holding(object):
 
         avg_cost_basis = 0.0
         total_shares = 0
-        n = len(self.lots)
-        if n > 0:
+        number_of_lots = len(self.lots)
+        if number_of_lots > 0:
             for lot in self.lots:
                 lot_cost_basis = lot.cost_basis * lot.shares
                 avg_cost_basis += lot_cost_basis
                 total_shares += lot.shares
             avg_cost_basis = avg_cost_basis / total_shares
         return avg_cost_basis
-        
 
     def add_lot(self, date, cost_basis, shares):
         """Creates a Lot object and appends it to the self.lots attribute
